@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Estimate Assistant</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at center, #141e30, #0a0a0a);
+      color: #e6e6f0;
+      overflow-x: hidden;
+      padding: 4rem 0;
+      cursor: none;
+      position: relative;
+    }
+    .cursor-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 192, 203, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+      mix-blend-mode: screen;
+      transform: translate(-50%, -50%);
+      z-index: 1000;
+      transition: transform 0.05s ease;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: radial-gradient(circle, #ffffff22 1px, transparent 1px);
+      background-size: 25px 25px;
+      z-index: 0;
+      pointer-events: none;
+      animation: backgroundWobble 1.5s infinite ease-in-out;
+    }
+    @keyframes backgroundWobble {
+      0%, 100% {
+        transform: translate(0, 0);
+      }
+      50% {
+        transform: translate(1px, 1px);
+      }
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .header i {
+      font-size: 4rem;
+      color: #a3c4f3;
+      margin-bottom: 1rem;
+    }
+    .header h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: #d4a5a5;
+      margin: 0.5rem 0 1rem;
+    }
+    .header p {
+      font-size: 1.3rem;
+      color: #ccc;
+      margin: 0 0 2rem;
+    }
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3rem;
+      justify-content: center;
+    }
+    .card {
+      flex: 1 1 45%;
+      min-width: 320px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(163, 196, 243, 0.2);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 0 20px rgba(173, 216, 230, 0.1);
+      backdrop-filter: blur(10px);
+    }
+    label {
+      display: block;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+    .textarea-wrapper {
+      position: relative;
+      margin-top: 1rem;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 1rem;
+      resize: none;
+    }
+    #mic {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    #mic i {
+      color: #a3c4f3;
+      font-size: 1.5rem;
+    }
+    .button {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(to right, #a3c4f3, #d4a5a5);
+      border: none;
+      border-radius: 0.5rem;
+      color: #111;
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+      margin-top: 2rem;
+      transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+      box-shadow: 0 4px 0 #b88;
+    }
+    .button:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #b88;
+    }
+    .responses {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 1.5rem;
+      position: relative;
+    }
+    .response-box {
+      background: rgba(255, 255, 255, 0.07);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(173, 216, 230, 0.15);
+      white-space: pre-wrap;
+      position: relative;
+    }
+    .response-box ul {
+      padding-left: 1.2em;
+    }
+    .response-box ul li::marker {
+      content: '➜ ';
+      color: #f080c0;
+    }
+    .refresh-btn {
+      position: absolute;
+      top: -30px;
+      right: 0;
+      cursor: pointer;
+      color: #d4a5a5;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="cursor-glow" id="glow"></div>
+  <div class="container">
+    <div class="header">
+      <i class="fas fa-tools"></i>
+      <h1>AI Estimate Assistant</h1>
+      <p>Describe your project and get professional field service estimates instantly.</p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <label for="prompt">Describe Your Project</label>
+        <div class="textarea-wrapper">
+          <textarea id="prompt" placeholder="E.g. Install a new HVAC unit for 1500 sq ft retail space"></textarea>
+          <button id="mic" title="Speak"><i class="fas fa-microphone"></i></button>
+        </div>
+        <button class="button" onclick="sendPrompt()">Get Estimate</button>
+      </div>
+
+      <div class="card">
+        <label>Estimate Result</label>
+        <div class="responses">
+          <span class="refresh-btn" onclick="refreshChat()"><i class='fas fa-rotate-right'></i></span>
+          <div id="response"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const micBtn = document.getElementById('mic');
+    const promptBox = document.getElementById('prompt');
+    const glow = document.getElementById('glow');
+    let recognizing = false;
+
+    document.addEventListener('mousemove', (e) => {
+      glow.style.left = e.clientX + 'px';
+      glow.style.top = e.clientY + 'px';
+      document.body.style.setProperty('--cursor-x', e.clientX + 'px');
+      document.body.style.setProperty('--cursor-y', e.clientY + 'px');
+    });
+
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    micBtn.addEventListener('click', () => {
+      if (recognizing) {
+        recognition.stop();
+        recognizing = false;
+      } else {
+        recognition.start();
+      }
+    });
+
+    recognition.onstart = () => {
+      recognizing = true;
+      micBtn.querySelector('i').style.color = '#f00';
+    };
+
+    recognition.onend = () => {
+      recognizing = false;
+      micBtn.querySelector('i').style.color = '#a3c4f3';
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      promptBox.value += (promptBox.value ? ' ' : '') + transcript;
+    };
+
+    recognition.onerror = (event) => {
+      alert("Voice recognition error. Please try again.");
+    };
+
+    promptBox.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendPrompt();
+      }
+    });
+
+    async function sendPrompt() {
+      const prompt = promptBox.value.trim();
+      if (!prompt) return;
+
+      const responseBox = document.getElementById('response');
+      responseBox.innerHTML = "⏳ Generating estimate...";
+
+      try {
+        const res = await fetch(`https://script.google.com/macros/s/AKfycbwxmwD35ITw3FMDkbpGxK0HotAyapwVIqFZeR3WtvhshSdtcKy2pFMNh0OtA52oqy0pdw/exec?prompt=${encodeURIComponent(prompt)}`);
+        const text = await res.text();
+
+        const safeText = text.replace(/(?<!\n)-\s/g, '➜ ');
+        responseBox.innerHTML = `<div class='response-box'>${safeText}</div>`;
+      } catch (err) {
+        responseBox.innerHTML = `<div class='response-box'>❌ Error getting estimate</div>`;
+      }
+    }
+
+    function refreshChat() {
+      document.getElementById('prompt').value = '';
+      document.getElementById('response').innerHTML = '';
+    }
+  </script>
+</body>
+</html>
+
