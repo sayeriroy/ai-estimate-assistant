@@ -270,7 +270,7 @@
       responseBox.innerHTML = "⏳ Generating estimate...";
 
       try {
-        const res = await fetch(`https://script.google.com/macros/s/AKfycbwxmwD35ITw3FMDkbpGxK0HotAyapwVIqFZeR3WtvhshSdtcKy2pFMNh0OtA52oqy0pdw/exec?prompt=${encodeURIComponent(prompt)}`);
+        const res = await fetch(`https://script.google.com/macros/s/AKfycbyNinj6eIiG6tsr9nlUpfyXQNeJrRuJnAOfvnjhuA6uz8atdzEHZSAJY3r4D08d4aHi0A/exec?prompt=${encodeURIComponent(prompt)}`);
         const text = await res.text();
 
         const safeText = text.replace(/(?<!\n)-\s/g, '➜ ');
@@ -287,4 +287,5 @@
   </script>
 </body>
 </html>
+
 
